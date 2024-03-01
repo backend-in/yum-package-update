@@ -1,0 +1,31 @@
+---
+- name: Update and upgrade packages on CentOS 7, AlmaLinux, and Rocky Linux
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install dnf on CentOS 7 if not present (CentOS 7 specific)
+      yum:
+        name: dnf
+        state: present
+      when: ansible_distribution == "CentOS" and ansible_distribution_major_version ==
+        "7"
+    - name: Update package cache and upgrade all packages using YUM (CentOS 7)
+      yum:
+        name: "*"
+        state: latest
+      register: update_result
+      when: ansible_distribution == "CentOS" and ansible_distribution_major_version ==
+        "7"
+      ignore_errors: yes
+    - name: Update package cache and upgrade all packages using DNF (AlmaLinux/Rocky
+        Linux and CentOS 8+)
+      dnf:
+        name: "*"
+        state: latest
+      register: update_result
+      when: ansible_distribution in ["AlmaLinux", "Rocky", "CentOS"] and
+        ansible_distribution_major_version != "7"
+      ignore_errors: yes
+    - name: Show update results
+      debug:
+        var: update_result
