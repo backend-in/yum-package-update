@@ -1,5 +1,5 @@
 ---
-- name: Update packages on CentOS 7, AlmaLinux, and Rocky Linux
+- name: Upgrade packages, install development tools, upgrade kernel, and reboot servers if needed
   hosts: centos7_servers, almalinux_servers, rockylinux_servers
   become: yes
   tasks:
@@ -8,8 +8,19 @@
         name: '*'
         state: latest
       register: update_result
-      ignore_errors: yes
 
-    - name: Show update results
-      debug:
-        var: update_result
+    - name: Install development tools
+      package:
+        name: '@development'
+        state: present
+
+    - name: Upgrade kernel to the latest version
+      package:
+        name: kernel
+        state: latest
+        update_cache: yes
+      when: "'kernel' in update_result.package_update"
+
+    - name: Reboot servers if kernel updated
+      reboot:
+      when: "'kernel' in update_result.package_update"
