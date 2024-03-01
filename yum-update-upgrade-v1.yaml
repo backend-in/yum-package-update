@@ -1,0 +1,48 @@
+---
+- name: Update, upgrade, and install epel-release and latest kernel on CentOS 7,
+    AlmaLinux, and Rocky Linux
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install EPEL Repository (CentOS & AlmaLinux & Rocky Linux)
+      yum:
+        name: epel-release
+        state: present
+      when: ansible_distribution in ["CentOS", "AlmaLinux", "Rocky"]
+    - name: Ensure 'dnf' is installed (CentOS 7 specific)
+      yum:
+        name: dnf
+        state: present
+      when: ansible_distribution == "CentOS" and ansible_distribution_major_version ==
+        "7"
+    - name: Update all packages using YUM (CentOS 7)
+      yum:
+        name: "*"
+        state: latest
+      register: update_result
+      when: ansible_distribution == "CentOS" and ansible_distribution_major_version ==
+        "7"
+      ignore_errors: yes
+    - name: Update all packages using DNF (AlmaLinux/Rocky Linux and CentOS 8+)
+      dnf:
+        name: "*"
+        state: latest
+      register: update_result
+      when: ansible_distribution in ["AlmaLinux", "Rocky", "CentOS"] and
+        ansible_distribution_major_version != "7"
+      ignore_errors: yes
+    - name: Upgrade kernel to the latest version (CentOS 7)
+      yum:
+        name: kernel
+        state: latest
+      when: ansible_distribution == "CentOS" and ansible_distribution_major_version ==
+        "7"
+    - name: Upgrade kernel to the latest version (AlmaLinux/Rocky Linux and CentOS 8+)
+      dnf:
+        name: kernel
+        state: latest
+      when: ansible_distribution in ["AlmaLinux", "Rocky", "CentOS"] and
+        ansible_distribution_major_version != "7"
+    - name: Show update results
+      debug:
+        var: update_result
