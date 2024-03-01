@@ -1,6 +1,6 @@
 ---
 - name: Upgrade packages, install development tools, upgrade kernel, and reboot servers if needed
-  hosts: centos7_servers, almalinux_servers, rockylinux_servers
+  hosts: all
   become: yes
   tasks:
     - name: Update package cache
