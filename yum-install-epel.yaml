@@ -3,14 +3,22 @@
   hosts: all
   become: yes
   tasks:
-    - name: Install epel-release on AlmaLinux 8 & 9, CentOS 7, Rocky Linux 8 & 9
+    - name: Install epel-release on CentOS 7
       yum:
         name: epel-release
         state: present
-      when: >
-        (ansible_distribution == "AlmaLinux" and ansible_distribution_version is
+      when: ansible_distribution == "CentOS" and ansible_distribution_version == "7"
+    - name: Install epel-release on AlmaLinux 8 & 9
+      yum:
+        name: epel-release
+        state: present
+      when: ansible_distribution == "AlmaLinux" and (ansible_distribution_version is
         version('8', '>=') and ansible_distribution_version is version('9',
-        '<=')) or (ansible_distribution == "CentOS" and
-        ansible_distribution_version == "7") or (ansible_distribution == "Rocky"
-        and ansible_distribution_version is version('8', '>=') and
-        ansible_distribution_version is version('9', '<='))
+        '<='))
+    - name: Install epel-release on Rocky Linux 8 & 9
+      yum:
+        name: epel-release
+        state: present
+      when: ansible_distribution == "Rocky" and (ansible_distribution_version is
+        version('8', '>=') and ansible_distribution_version is version('9',
+        '<='))
