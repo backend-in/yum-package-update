@@ -1,6 +1,6 @@
 ---
 - name: Upgrade packages, install development tools, upgrade kernel, and reboot servers if needed
-  hosts: all
+  hosts: centos7_servers, almalinux_servers, rockylinux_servers
   become: yes
   tasks:
     - name: Update package cache
@@ -14,13 +14,17 @@
         name: '@development'
         state: present
 
+    - name: Check if kernel package is updated
+      set_fact:
+        kernel_updated: "{{ update_result | json_query('package_update.kernel') | default([]) }}"
+
     - name: Upgrade kernel to the latest version
       package:
         name: kernel
         state: latest
         update_cache: yes
-      when: "'kernel' in update_result.package_update"
+      when: kernel_updated | length > 0
 
     - name: Reboot servers if kernel updated
       reboot:
-      when: "'kernel' in update_result.package_update"
+      when: kernel_updated | length > 0
