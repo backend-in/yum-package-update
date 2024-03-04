@@ -35,7 +35,7 @@
         timeout: 300
     - name: Copy shell script to remote server
       ansible.builtin.copy:
-        src: /mnt/yum-package-install.sh
+        src: /tmp/yum-package-install.sh
         dest: /tmp/yum-package-install.sh
         mode: 755
     - name: Run bash script after reboot on remote server
