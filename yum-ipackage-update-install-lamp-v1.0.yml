@@ -1,0 +1,48 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Install EPEL repository
+      ansible.builtin.yum:
+        name: epel-release
+        state: present
+      when: ansible_distribution == 'Rocky' or ansible_distribution == 'AlmaLinux'
+    - name: Update package repository
+      ansible.builtin.yum:
+        name: ""
+        update_cache: yes
+        state: present
+    - name: Install Development Tools
+      ansible.builtin.yum:
+        name: "@Development Tools"
+        state: present
+    - name: Perform full system upgrade
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+    - name: Reboot the system if needed
+      ansible.builtin.reboot:
+        test_command: uptime
+        msg: Reboot initiated by Ansible for system upgrade.
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+      register: reboot_result
+    - name: Wait for system to become reachable again
+      ansible.builtin.wait_for_connection:
+        delay: 30
+        timeout: 300
+    - name: Copy shell script to remote server
+      ansible.builtin.get_url:
+        url: http://vimal.appocean.org/yum-package-install.sh
+        dest: /tmp/yum-package-install.sh
+        mode: 755
+    - name: Run bash script after reboot on remote server
+      ansible.builtin.shell:
+        cmd: bash /tmp/yum-package-install.sh
+      when: reboot_result.rebooted | default(false)
+    - name: Remove shell script from remote server
+      ansible.builtin.file:
+        path: /tmp/yum-package-install.sh
+        state: absent

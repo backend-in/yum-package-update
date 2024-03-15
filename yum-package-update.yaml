@@ -1,0 +1,15 @@
+---
+- name: Update packages on CentOS 7, AlmaLinux, and Rocky Linux
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update package cache
+      package:
+        name: '*'
+        state: latest
+      register: update_result
+      ignore_errors: yes
+
+    - name: Show update results
+      debug:
+        var: update_result

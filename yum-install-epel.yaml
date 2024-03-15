@@ -1,0 +1,29 @@
+---
+- name: Install epel-release on specific distributions
+  hosts: all
+  become: yes
+  tasks:
+    - name: Clean yum cache (CentOS 7 only)
+      yum:
+        name: '*'
+        state: absent
+        update_cache: yes
+      when: ansible_distribution == "CentOS" and ansible_distribution_version == "7"
+      ignore_errors: yes
+
+    - name: Install epel-release on CentOS 7
+      yum:
+        name: epel-release
+        state: present
+      when: ansible_distribution == "CentOS" and ansible_distribution_version == "7"
+      
+    - name: Debug message after attempting to install epel-release on CentOS 7
+      debug:
+        msg: "Attempted to install epel-release on CentOS 7"
+      when: ansible_distribution == "CentOS" and ansible_distribution_version == "7"
+
+    - name: Install epel-release on AlmaLinux 8 & 9 and Rocky Linux 8 & 9
+      yum:
+        name: epel-release
+        state: present
+      when: (ansible_distribution == "AlmaLinux" or ansible_distribution == "Rocky") and (ansible_distribution_version is version('8', '>=') and ansible_distribution_version is version('9', '<='))

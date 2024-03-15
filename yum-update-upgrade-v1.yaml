@@ -1,0 +1,44 @@
+---
+- name: Update repos, install epel-release, upgrade system, and reboot on CentOS 7, AlmaLinux, and Rocky Linux
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update repository cache (CentOS 7 using yum)
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+      when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+    
+    - name: Update repository cache (AlmaLinux/Rocky Linux using dnf)
+      dnf:
+        name: '*'
+        state: latest
+        update_cache: yes
+      when: ansible_distribution in ["AlmaLinux", "Rocky"] or (ansible_distribution == "CentOS" and ansible_distribution_major_version != "7")
+
+    - name: Install EPEL Repository
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Full system upgrade (CentOS 7 using yum)
+      yum:
+        name: '*'
+        state: latest
+      when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+
+    - name: Full system upgrade (AlmaLinux/Rocky Linux using dnf)
+      dnf:
+        name: '*'
+        state: latest
+      when: ansible_distribution in ["AlmaLinux", "Rocky"] or (ansible_distribution == "CentOS" and ansible_distribution_major_version != "7")
+
+  handlers:
+    - name: Reboot the system
+      ansible.builtin.reboot:
+
+  tasks:
+    - name: Reboot system after upgrades
+      ansible.builtin.reboot:
+      when: ansible_distribution in ["CentOS", "AlmaLinux", "Rocky"]
